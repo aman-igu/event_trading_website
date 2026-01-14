@@ -1,6 +1,8 @@
 import mongoose from 'mongoose'
 
-const MONGO_URI = process.env.MONGO_URI || process.env.MONGODB_URI
+// --- MongoDB Atlas connection ---
+// Directly set Atlas URI here for testing
+const MONGO_URI = "mongodb+srv://coolnamandubey_db_user:Nn123456@cluster0.evny86i.mongodb.net/event-trading?retryWrites=true&w=majority";
 
 export async function connectDB() {
   if (mongoose.connection.readyState === 1) return mongoose
