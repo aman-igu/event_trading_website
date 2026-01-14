@@ -1,7 +1,7 @@
 // Test script to create admin user
 // Run this with: node create-admin.js
 
-const apiUrl = 'http://localhost:4000'
+const apiUrl = 'https://event-trading-website-1.onrender.com'
 
 async function createAdmin() {
     try {

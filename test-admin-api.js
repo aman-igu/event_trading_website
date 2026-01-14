@@ -1,5 +1,5 @@
 // Test if admin APIs are working
-const apiUrl = 'http://localhost:4000'
+const apiUrl = 'https://event-trading-website-1.onrender.com'
 
 // First login to get token
 async function testAdminAPIs() {

@@ -1,5 +1,5 @@
 // Create test trader
-const apiUrl = 'http://localhost:4000'
+const apiUrl = 'https://event-trading-website-1.onrender.com'
 
 async function createTrader() {
     try {
