@@ -1,4 +1,4 @@
-import { User, Stock, Trade, Portfolio, TradingCard } from '../data/store.js'
+import { User, Stock, Trade, Portfolio, TradingCard, Settings } from '../data/store.js'
 
 // Get all teams with members and balances
 export async function getAllTeams(req, res) {
@@ -577,3 +577,89 @@ export async function deleteTradingCard(req, res) {
     }
 }
 
+// ============ TRADING SETTINGS FUNCTIONS ============
+
+// Get trading settings (buy/sell enabled status)
+export async function getTradingSettings(req, res) {
+    try {
+        const buyEnabled = await Settings.findOne({ key: 'buyEnabled' })
+        const sellEnabled = await Settings.findOne({ key: 'sellEnabled' })
+
+        return res.status(200).json({
+            ok: true,
+            settings: {
+                buyEnabled: buyEnabled ? buyEnabled.value : true, // Default to true
+                sellEnabled: sellEnabled ? sellEnabled.value : true // Default to true
+            }
+        })
+    } catch (err) {
+        console.error('getTradingSettings error:', err)
+        return res.status(500).json({ ok: false, error: 'internal_server_error' })
+    }
+}
+
+// Toggle buy enabled/disabled
+export async function toggleBuyEnabled(req, res) {
+    try {
+        const { enabled } = req.body
+
+        if (typeof enabled !== 'boolean') {
+            return res.status(400).json({
+                ok: false,
+                error: 'enabled (boolean) is required'
+            })
+        }
+
+        const setting = await Settings.findOneAndUpdate(
+            { key: 'buyEnabled' },
+            {
+                value: enabled,
+                updatedBy: req.user.userId,
+                updatedAt: new Date()
+            },
+            { upsert: true, new: true }
+        )
+
+        return res.status(200).json({
+            ok: true,
+            message: `Buy trading ${enabled ? 'enabled' : 'disabled'}`,
+            buyEnabled: setting.value
+        })
+    } catch (err) {
+        console.error('toggleBuyEnabled error:', err)
+        return res.status(500).json({ ok: false, error: 'internal_server_error' })
+    }
+}
+
+// Toggle sell enabled/disabled
+export async function toggleSellEnabled(req, res) {
+    try {
+        const { enabled } = req.body
+
+        if (typeof enabled !== 'boolean') {
+            return res.status(400).json({
+                ok: false,
+                error: 'enabled (boolean) is required'
+            })
+        }
+
+        const setting = await Settings.findOneAndUpdate(
+            { key: 'sellEnabled' },
+            {
+                value: enabled,
+                updatedBy: req.user.userId,
+                updatedAt: new Date()
+            },
+            { upsert: true, new: true }
+        )
+
+        return res.status(200).json({
+            ok: true,
+            message: `Sell trading ${enabled ? 'enabled' : 'disabled'}`,
+            sellEnabled: setting.value
+        })
+    } catch (err) {
+        console.error('toggleSellEnabled error:', err)
+        return res.status(500).json({ ok: false, error: 'internal_server_error' })
+    }
+}

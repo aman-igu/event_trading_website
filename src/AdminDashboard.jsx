@@ -96,6 +96,7 @@ export default function AdminDashboard({ user, onLogout }) {
     const [users, setUsers] = useState([])
     const [cards, setCards] = useState([])
     const [loading, setLoading] = useState(false)
+    const [tradingSettings, setTradingSettings] = useState({ buyEnabled: true, sellEnabled: true })
     const [stockForm, setStockForm] = useState({ symbol: '', name: '', currentPrice: '', category: 'technology' })
     const [teamForm, setTeamForm] = useState({ teamName: '', initialBudget: 0 })
     const [memberForm, setMemberForm] = useState({ userId: '', teamName: '' })
@@ -129,6 +130,9 @@ export default function AdminDashboard({ user, onLogout }) {
                 ])
                 if (cardsRes.ok) setCards(cardsRes.data.cards || [])
                 if (stocksRes.ok) setStocks(stocksRes.data.stocks || [])
+            } else if (activeTab === 'settings') {
+                const { ok, data } = await apiGet('/api/admin/settings/trading')
+                if (ok) setTradingSettings(data.settings)
             }
         } catch (err) { console.error(err) }
         setLoading(false)
@@ -200,6 +204,22 @@ export default function AdminDashboard({ user, onLogout }) {
         }
     }
 
+    async function handleToggleBuy() {
+        const newValue = !tradingSettings.buyEnabled
+        const { ok } = await apiPost('/api/admin/settings/trading/buy', { enabled: newValue })
+        if (ok) {
+            setTradingSettings(prev => ({ ...prev, buyEnabled: newValue }))
+        }
+    }
+
+    async function handleToggleSell() {
+        const newValue = !tradingSettings.sellEnabled
+        const { ok } = await apiPost('/api/admin/settings/trading/sell', { enabled: newValue })
+        if (ok) {
+            setTradingSettings(prev => ({ ...prev, sellEnabled: newValue }))
+        }
+    }
+
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-900 to-black">
             <div className="bg-slate-900 border-b border-slate-700">
@@ -211,10 +231,10 @@ export default function AdminDashboard({ user, onLogout }) {
 
             <div className="max-w-full px-4 md:px-6 lg:px-8 py-6">
                 <div className="flex gap-3 mb-6 overflow-x-auto">
-                    {['dashboard', 'teams', 'stocks', 'cards', 'trades'].map(tab => (
+                    {['dashboard', 'teams', 'stocks', 'cards', 'trades', 'settings'].map(tab => (
                         <button key={tab} onClick={() => setActiveTab(tab)}
                             className={`px-8 py-3 rounded-lg font-semibold capitalize whitespace-nowrap ${activeTab === tab ? 'bg-indigo-600 text-white' : 'bg-slate-800 text-slate-300'}`}>
-                            {tab === 'cards' ? '🎴 Cards' : tab}
+                            {tab === 'cards' ? '🎴 Cards' : tab === 'settings' ? '⚙️ Settings' : tab}
                         </button>
                     ))}
                 </div>
@@ -351,6 +371,92 @@ export default function AdminDashboard({ user, onLogout }) {
                                 </table>
                             </div>
                         ) : <p className="text-slate-400 text-center py-12">No trades yet</p>}
+                    </div>
+                )}
+
+                {activeTab === 'settings' && (
+                    <div className="space-y-6">
+                        <h2 className="text-3xl font-bold text-white mb-6">⚙️ Trading Settings</h2>
+
+                        <div className="bg-gradient-to-r from-slate-800 to-slate-900 border-2 border-slate-700 rounded-xl p-8">
+                            <h3 className="text-2xl font-bold text-white mb-6">🔄 Trading Controls</h3>
+                            <p className="text-slate-400 mb-8">Enable or disable buying and selling for all users. When disabled, users will see an error message when trying to trade.</p>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {/* Buy Toggle */}
+                                <div className="bg-slate-900 rounded-xl p-6 border-2 border-slate-700">
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <h4 className="text-xl font-bold text-white">🛒 Buy Trading</h4>
+                                            <p className="text-sm text-slate-400 mt-1">
+                                                {tradingSettings.buyEnabled ? 'Users can buy stocks' : 'Buying is disabled'}
+                                            </p>
+                                        </div>
+                                        <button
+                                            onClick={handleToggleBuy}
+                                            className={`relative inline-flex h-10 w-20 items-center rounded-full transition-colors duration-300 ${tradingSettings.buyEnabled ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'}`}
+                                        >
+                                            <span
+                                                className={`inline-block h-8 w-8 transform rounded-full bg-white shadow-lg transition-transform duration-300 ${tradingSettings.buyEnabled ? 'translate-x-11' : 'translate-x-1'}`}
+                                            />
+                                        </button>
+                                    </div>
+                                    <div className={`mt-4 px-4 py-2 rounded-lg text-center font-bold text-lg ${tradingSettings.buyEnabled ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
+                                        {tradingSettings.buyEnabled ? '✅ ENABLED' : '❌ DISABLED'}
+                                    </div>
+                                </div>
+
+                                {/* Sell Toggle */}
+                                <div className="bg-slate-900 rounded-xl p-6 border-2 border-slate-700">
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <h4 className="text-xl font-bold text-white">💰 Sell Trading</h4>
+                                            <p className="text-sm text-slate-400 mt-1">
+                                                {tradingSettings.sellEnabled ? 'Users can sell stocks' : 'Selling is disabled'}
+                                            </p>
+                                        </div>
+                                        <button
+                                            onClick={handleToggleSell}
+                                            className={`relative inline-flex h-10 w-20 items-center rounded-full transition-colors duration-300 ${tradingSettings.sellEnabled ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'}`}
+                                        >
+                                            <span
+                                                className={`inline-block h-8 w-8 transform rounded-full bg-white shadow-lg transition-transform duration-300 ${tradingSettings.sellEnabled ? 'translate-x-11' : 'translate-x-1'}`}
+                                            />
+                                        </button>
+                                    </div>
+                                    <div className={`mt-4 px-4 py-2 rounded-lg text-center font-bold text-lg ${tradingSettings.sellEnabled ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
+                                        {tradingSettings.sellEnabled ? '✅ ENABLED' : '❌ DISABLED'}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Quick Actions */}
+                        <div className="bg-gradient-to-r from-amber-900/50 to-orange-900/50 border-2 border-amber-600 rounded-xl p-6">
+                            <h3 className="text-xl font-bold text-white mb-4">⚡ Quick Actions</h3>
+                            <div className="flex flex-wrap gap-4">
+                                <button
+                                    onClick={async () => {
+                                        await apiPost('/api/admin/settings/trading/buy', { enabled: true })
+                                        await apiPost('/api/admin/settings/trading/sell', { enabled: true })
+                                        setTradingSettings({ buyEnabled: true, sellEnabled: true })
+                                    }}
+                                    className="px-6 py-3 bg-green-600 hover:bg-green-700 rounded-lg text-white font-bold transition-colors"
+                                >
+                                    ✅ Enable All Trading
+                                </button>
+                                <button
+                                    onClick={async () => {
+                                        await apiPost('/api/admin/settings/trading/buy', { enabled: false })
+                                        await apiPost('/api/admin/settings/trading/sell', { enabled: false })
+                                        setTradingSettings({ buyEnabled: false, sellEnabled: false })
+                                    }}
+                                    className="px-6 py-3 bg-red-600 hover:bg-red-700 rounded-lg text-white font-bold transition-colors"
+                                >
+                                    ❌ Disable All Trading
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 )}
 

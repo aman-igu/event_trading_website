@@ -10,7 +10,20 @@ const app = express()
 const PORT = process.env.PORT || 4000
 
 
-app.use(cors())
+// CORS configuration for production
+const corsOptions = {
+	origin: [
+		'http://localhost:5173',
+		'http://localhost:3000',
+		'https://event-trading-website.vercel.app',
+		'https://event-trading-website-1.onrender.com'
+	],
+	credentials: true,
+	methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+	allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+}
+
+app.use(cors(corsOptions))
 app.use(express.json())
 
 

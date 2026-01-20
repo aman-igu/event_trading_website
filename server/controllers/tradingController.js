@@ -1,8 +1,17 @@
-import { User, Stock, Trade, Portfolio } from '../data/store.js'
+import { User, Stock, Trade, Portfolio, Settings } from '../data/store.js'
 
 // Buy stock
 export async function buyStock(req, res) {
     try {
+        // Check if buying is enabled
+        const buyEnabledSetting = await Settings.findOne({ key: 'buyEnabled' })
+        if (buyEnabledSetting && buyEnabledSetting.value === false) {
+            return res.status(403).json({
+                ok: false,
+                error: 'Buying is currently disabled by admin'
+            })
+        }
+
         const { stockId, quantity } = req.body
 
         // Validation
@@ -104,6 +113,15 @@ export async function buyStock(req, res) {
 // Sell stock
 export async function sellStock(req, res) {
     try {
+        // Check if selling is enabled
+        const sellEnabledSetting = await Settings.findOne({ key: 'sellEnabled' })
+        if (sellEnabledSetting && sellEnabledSetting.value === false) {
+            return res.status(403).json({
+                ok: false,
+                error: 'Selling is currently disabled by admin'
+            })
+        }
+
         const { stockId, quantity } = req.body
 
         // Validation
@@ -272,6 +290,23 @@ export async function getTradeHistory(req, res) {
         })
     } catch (err) {
         console.error('getTradeHistory error:', err)
+        return res.status(500).json({ ok: false, error: 'internal_server_error' })
+    }
+}
+
+// Get trading settings (public for all authenticated users)
+export async function getTradingSettings(req, res) {
+    try {
+        const buyEnabled = await Settings.findOne({ key: 'buyEnabled' })
+        const sellEnabled = await Settings.findOne({ key: 'sellEnabled' })
+
+        return res.status(200).json({
+            ok: true,
+            buyEnabled: buyEnabled ? buyEnabled.value : true,
+            sellEnabled: sellEnabled ? sellEnabled.value : true
+        })
+    } catch (err) {
+        console.error('getTradingSettings error:', err)
         return res.status(500).json({ ok: false, error: 'internal_server_error' })
     }
 }

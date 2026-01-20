@@ -8,6 +8,7 @@ export default function TradePanel({ user, onLogout, onBalanceUpdate }) {
   const [trades, setTrades] = useState([])
   const [loading, setLoading] = useState(false)
   const [userBalance, setUserBalance] = useState(user?.balance || 0)
+  const [tradingSettings, setTradingSettings] = useState({ buyEnabled: true, sellEnabled: true })
 
   const [buyForm, setBuyForm] = useState({ stockId: '', quantity: '' })
   const [sellForm, setSellForm] = useState({ stockId: '', quantity: '' })
@@ -23,11 +24,12 @@ export default function TradePanel({ user, onLogout, onBalanceUpdate }) {
   async function loadData() {
     setLoading(true)
     try {
-      const [stocksRes, portfolioRes, tradesRes, userRes] = await Promise.all([
+      const [stocksRes, portfolioRes, tradesRes, userRes, settingsRes] = await Promise.all([
         apiGet('/api/trading/stocks'),
         apiGet('/api/trading/portfolio'),
         apiGet('/api/trading/history'),
-        apiGet('/api/auth/me')
+        apiGet('/api/auth/me'),
+        apiGet('/api/trading/settings')
       ])
       console.log('📊 Portfolio API response:', portfolioRes)
       if (stocksRes.ok) setStocks(stocksRes.data.stocks || [])
@@ -50,6 +52,13 @@ export default function TradePanel({ user, onLogout, onBalanceUpdate }) {
             localStorage.setItem('user', JSON.stringify(parsedUser))
           } catch (e) { }
         }
+      }
+      // Load trading settings
+      if (settingsRes.ok && settingsRes.data) {
+        setTradingSettings({
+          buyEnabled: settingsRes.data.buyEnabled !== false,
+          sellEnabled: settingsRes.data.sellEnabled !== false
+        })
       }
     } catch (err) {
       console.error(err)
@@ -186,6 +195,7 @@ export default function TradePanel({ user, onLogout, onBalanceUpdate }) {
                 onChange={(e) => setBuyForm({ ...buyForm, stockId: e.target.value })}
                 className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-white"
                 required
+                disabled={!tradingSettings.buyEnabled}
               >
                 <option value="">Select Stock</option>
                 {stocks.map(stock => (
@@ -202,6 +212,7 @@ export default function TradePanel({ user, onLogout, onBalanceUpdate }) {
                 className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-white"
                 min="1"
                 required
+                disabled={!tradingSettings.buyEnabled}
               />
               {buyForm.stockId && buyForm.quantity && (
                 <div className="bg-slate-800/50 rounded-lg p-3">
@@ -209,8 +220,12 @@ export default function TradePanel({ user, onLogout, onBalanceUpdate }) {
                   <p className="text-slate-500 text-sm mt-1">Balance after: ₹{(userBalance - (stocks.find(s => s._id === buyForm.stockId)?.currentPrice * buyForm.quantity)).toFixed(2)}</p>
                 </div>
               )}
-              <button type="submit" className="w-full bg-green-600 hover:bg-green-700 rounded-lg px-6 py-3 text-white font-bold">
-                Buy
+              <button
+                type="submit"
+                className={`w-full rounded-lg px-6 py-3 text-white font-bold ${!tradingSettings.buyEnabled ? 'bg-gray-600 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'}`}
+                disabled={!tradingSettings.buyEnabled}
+              >
+                {tradingSettings.buyEnabled ? 'Buy' : 'Buy Disabled'}
               </button>
             </form>
           </div>
@@ -227,6 +242,7 @@ export default function TradePanel({ user, onLogout, onBalanceUpdate }) {
                   onChange={(e) => setSellForm({ ...sellForm, stockId: e.target.value })}
                   className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-white"
                   required
+                  disabled={!tradingSettings.sellEnabled}
                 >
                   <option value="">Select Stock to Sell</option>
                   {portfolio.map(item => (
@@ -257,6 +273,7 @@ export default function TradePanel({ user, onLogout, onBalanceUpdate }) {
                   min="1"
                   max={selectedSellItem?.quantity || 1}
                   required
+                  disabled={!tradingSettings.sellEnabled}
                 />
 
                 {sellForm.stockId && sellForm.quantity && selectedSellItem && (
@@ -273,8 +290,12 @@ export default function TradePanel({ user, onLogout, onBalanceUpdate }) {
                   </div>
                 )}
 
-                <button type="submit" className="w-full bg-red-600 hover:bg-red-700 rounded-lg px-6 py-3 text-white font-bold">
-                  Sell
+                <button
+                  type="submit"
+                  className={`w-full rounded-lg px-6 py-3 text-white font-bold ${!tradingSettings.sellEnabled ? 'bg-gray-600 cursor-not-allowed' : 'bg-red-600 hover:bg-red-700'}`}
+                  disabled={!tradingSettings.sellEnabled}
+                >
+                  {tradingSettings.sellEnabled ? 'Sell' : 'Sell Disabled'}
                 </button>
               </form>
             )}

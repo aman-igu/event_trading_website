@@ -3,7 +3,8 @@ import {
     buyStock,
     sellStock,
     getPortfolio,
-    getTradeHistory
+    getTradeHistory,
+    getTradingSettings
 } from '../controllers/tradingController.js'
 import { getAllStocks } from '../controllers/adminController.js'
 import { authMiddleware } from '../middleware/auth.js'
@@ -15,6 +16,9 @@ router.use(authMiddleware)
 
 // Get available stocks
 router.get('/stocks', getAllStocks)
+
+// Get trading settings (buy/sell enabled status)
+router.get('/settings', getTradingSettings)
 
 // Trading operations
 router.post('/buy', buyStock)

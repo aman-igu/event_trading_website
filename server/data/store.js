@@ -89,11 +89,20 @@ const tradingCardSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now }
 })
 
+// Global Settings schema - for admin controls like buy/sell toggles
+const settingsSchema = new mongoose.Schema({
+  key: { type: String, required: true, unique: true },
+  value: { type: mongoose.Schema.Types.Mixed, required: true },
+  updatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  updatedAt: { type: Date, default: Date.now }
+})
+
 export const User = mongoose.models.User || mongoose.model('User', userSchema)
 export const Activity = mongoose.models.Activity || mongoose.model('Activity', activitySchema)
 export const Stock = mongoose.models.Stock || mongoose.model('Stock', stockSchema)
 export const Trade = mongoose.models.Trade || mongoose.model('Trade', tradeSchema)
 export const Portfolio = mongoose.models.Portfolio || mongoose.model('Portfolio', portfolioSchema)
 export const TradingCard = mongoose.models.TradingCard || mongoose.model('TradingCard', tradingCardSchema)
+export const Settings = mongoose.models.Settings || mongoose.model('Settings', settingsSchema)
 
 export function nowISO() { return new Date().toISOString() }

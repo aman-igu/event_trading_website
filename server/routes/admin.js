@@ -15,7 +15,10 @@ import {
     createTradingCard,
     getAllTradingCards,
     activateTradingCard,
-    deleteTradingCard
+    deleteTradingCard,
+    getTradingSettings,
+    toggleBuyEnabled,
+    toggleSellEnabled
 } from '../controllers/adminController.js'
 import { authMiddleware, requireRole } from '../middleware/auth.js'
 
@@ -50,6 +53,11 @@ router.delete('/cards/:cardId', deleteTradingCard)
 
 // Trade monitoring
 router.get('/trades', getAllTrades)
+
+// Trading Settings (Buy/Sell Toggle)
+router.get('/settings/trading', getTradingSettings)
+router.post('/settings/trading/buy', toggleBuyEnabled)
+router.post('/settings/trading/sell', toggleSellEnabled)
 
 export default router
 
