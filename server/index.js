@@ -16,7 +16,8 @@ const corsOptions = {
 		'http://localhost:5173',
 		'http://localhost:3000',
 		'https://event-trading-website.vercel.app',
-		'https://event-trading-website-1.onrender.com'
+		'https://event-trading-website-1.onrender.com',
+		'https://eventtrading.vercel.app'
 	],
 	credentials: true,
 	methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
